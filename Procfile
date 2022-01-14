@@ -1,0 +1,1 @@
+scheduler: bin/check-availability
