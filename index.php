@@ -9,12 +9,12 @@ $sms_to_number = $_ENV["SMS_SEND_TO"];
 $ikea_article_number = $_ENV["IKEA_ARTICLE_NUMBER"];
 $ikea_api_token = $_ENV['IKEA_API_TOKEN'];
 $twilio_client = getTwilioClient($account_sid, $auth_token);
-$client = new \GuzzleHttp\Client();
+$client = getHttpClient($ikea_api_token);
 
 // -----------------------------------------------------------------
 
 $jsonStores = getIkeaStores($client);
-$jsonAvailabily = getIkeaAvailability($client, $ikea_article_number, $ikea_api_token);
+$jsonAvailabily = getIkeaAvailability($client, $ikea_article_number);
 $found = processIkeaAvailability($jsonAvailabily->availabilities);
 
 $storesAvailableForCashCarry = matchIkeaStoresAgainstAvailability($jsonStores, $found['availableForCashCarry']);

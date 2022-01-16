@@ -1,5 +1,31 @@
 <?php
 
+use Psr\Http\Message\RequestInterface;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Handler\CurlHandler;
+use GuzzleHttp\Client;
+
+function addClientHeader($header, $value)
+{
+    return function (callable $handler) use ($header, $value) {
+        return function (
+            RequestInterface $request,
+            array $options
+        ) use ($handler, $header, $value) {
+            $request = $request->withHeader($header, $value);
+            return $handler($request, $options);
+        };
+    };
+}
+
+function getHttpClient($api_token){
+  $stack = new HandlerStack();
+  $stack->setHandler(new CurlHandler());
+  $stack->push(addClientHeader('x-client-id', $api_token));
+  $client = new Client(['handler' => $stack]);
+  return $client;
+}
+
 function getTwilioClient($account_sid, $auth_token){
   return new \Twilio\Rest\Client($account_sid, $auth_token);
 }
@@ -14,12 +40,11 @@ function sendTextMessage(\Twilio\Rest\Client $client, string $twilio_number, str
   );
 }
 
-function getIkeaAvailability(\GuzzleHttp\Client $client, $article_number, $api_token){
+function getIkeaAvailability(\GuzzleHttp\Client $client, $article_number){
   $response = $client->request('GET', "https://api.ingka.ikea.com/cia/availabilities/ru/us?itemNos={$article_number}&expand=StoresList,Restocks,SalesLocations", [
     'headers' => [
       'authority'     => 'api.ingka.ikea.com',
       'accept'        => 'application/json;version=2',
-      'x-client-id'   => $api_token,
       'pragma'        => 'no-cache',
       'cache-control' => 'no-cache',
     ]
